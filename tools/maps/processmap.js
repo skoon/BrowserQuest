@@ -1,7 +1,7 @@
 
-var Log = require('log'),
+var pino = require('pino'),
     _ = require('underscore'),
-    log = new Log(Log.DEBUG),
+    log = pino({ level: 'debug' }),
     Types = require("../../shared/js/gametypes");
 
 var map,

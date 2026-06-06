@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 var util = require('util'),
-    Log = require('log'),
+    pino = require('pino'),
     path = require("path"),
     fs = require("fs"),
     processMap = require('./processmap'),
-    log = new Log(Log.DEBUG);
+    log = pino({ level: 'debug' });
     
 var source = process.argv[2],
     destination = process.argv[3],
@@ -47,12 +47,12 @@ function main() {
 function getTiledJSONmap(filename, callback) {
     var self = this;
     
-    path.exists(filename, function(exists) {
-        if(!exists) {  
+    fs.access(filename, fs.constants.F_OK, function(err) {
+        if(err) {
             log.error(filename + " doesn't exist.")
             return;
         }
-    
+
         fs.readFile(source, function(err, file) {
             callback(JSON.parse(file.toString()));
         });

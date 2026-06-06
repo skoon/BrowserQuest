@@ -1,14 +1,14 @@
 
 var fs = require('fs'),
+    pino = require('pino'),
     Metrics = require('./metrics');
 
 
 function main(config) {
     var ws = require("./ws"),
         WorldServer = require("./worldserver"),
-        Log = require('log'),
         _ = require('underscore'),
-        server = new ws.MultiVersionWebsocketServer(config.port),
+        server = new ws.WsServer(config.port),
         metrics = config.metrics_enabled ? new Metrics(config) : null;
         worlds = [],
         lastTotalPlayers = 0,
@@ -25,14 +25,16 @@ function main(config) {
             }
         }, 1000);
     
+    var level = 'info';
     switch(config.debug_level) {
         case "error":
-            log = new Log(Log.ERROR); break;
+            level = 'error'; break;
         case "debug":
-            log = new Log(Log.DEBUG); break;
+            level = 'debug'; break;
         case "info":
-            log = new Log(Log.INFO); break;
+            level = 'info'; break;
     };
+    log = pino({ level: level });
     
     log.info("Starting BrowserQuest game server...");
     
