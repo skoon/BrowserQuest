@@ -97,8 +97,32 @@ function main(config) {
     }
     
     process.on('uncaughtException', function (e) {
-        log.error('uncaughtException: ' + e);
+        log.error(e, 'uncaughtException - exiting');
+        process.exit(1);
     });
+
+    process.on('unhandledRejection', function (reason, promise) {
+        log.error(reason, 'unhandledRejection');
+    });
+
+    function gracefulShutdown(signal) {
+        log.info(signal + ' received - shutting down gracefully');
+        clearInterval(checkPopulationInterval);
+        setTimeout(function() {
+            log.error('Forced exit after shutdown timeout');
+            process.exit(1);
+        }, 5000).unref();
+        _.each(worlds, function(world) {
+            world.close();
+        });
+        server.closeAll(function() {
+            log.info('Server shut down complete');
+            process.exit(0);
+        });
+    }
+
+    process.on('SIGTERM', function() { gracefulShutdown('SIGTERM'); });
+    process.on('SIGINT', function() { gracefulShutdown('SIGINT'); });
 }
 
 function getWorldDistribution(worlds) {

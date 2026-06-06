@@ -128,6 +128,16 @@ WS.WsServer = Server.extend({
 
     onRequestStatus: function(status_callback) {
         this.status_callback = status_callback;
+    },
+
+    closeAll: function(callback) {
+        var self = this;
+        this.forEachConnection(function(connection) {
+            connection._connection.close();
+        });
+        this._wss.close(function() {
+            self._httpServer.close(callback);
+        });
     }
 });
 

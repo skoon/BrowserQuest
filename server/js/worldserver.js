@@ -187,17 +187,21 @@ module.exports = World = cls.Class.extend({
         
         var regenCount = this.ups * 2;
         var updateCount = 0;
-        setInterval(function() {
-            self.processGroups();
-            self.processQueues();
-            
-            if(updateCount < regenCount) {
-                updateCount += 1;
-            } else {
-                if(self.regen_callback) {
-                    self.regen_callback();
+        this._tickInterval = setInterval(function() {
+            try {
+                self.processGroups();
+                self.processQueues();
+
+                if(updateCount < regenCount) {
+                    updateCount += 1;
+                } else {
+                    if(self.regen_callback) {
+                        self.regen_callback();
+                    }
+                    updateCount = 0;
                 }
-                updateCount = 0;
+            } catch(e) {
+                log.error(e, 'Caught error in main game tick - continuing');
             }
         }, 1000 / this.ups);
         
@@ -849,6 +853,17 @@ module.exports = World = cls.Class.extend({
         });
     },
     
+    close: function() {
+        if(this._tickInterval) {
+            clearInterval(this._tickInterval);
+        }
+        this.forEachPlayer(function(player) {
+            if(player.connection) {
+                player.connection.close();
+            }
+        });
+    },
+
     updatePopulation: function(totalPlayers) {
         this.pushBroadcast(new Messages.Population(this.playerCount, totalPlayers ? totalPlayers : this.playerCount));
     }
